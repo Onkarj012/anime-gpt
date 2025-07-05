@@ -3,25 +3,41 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbopack --hostname 0.0.0.0",
     "build": "next build",
     "start": "next start",
+    "seed": "ts-node ./scripts/loadDB.ts",
     "lint": "next lint"
   },
   "dependencies": {
+    "@ai-sdk/react": "^1.2.12",
+    "@datastax/astra-db-ts": "^2.0.1",
+    "@langchain/community": "^0.3.47",
+    "@langchain/core": "^0.3.61",
+    "@pinecone-database/pinecone": "^6.1.1",
+    "@xenova/transformers": "^2.17.2",
+    "ai": "^4.3.16",
+    "cheerio": "^1.1.0",
+    "dotenv": "^17.0.0",
+    "groq-sdk": "^0.26.0",
+    "langchain": "^0.3.29",
+    "next": "15.3.4",
+    "openai": "^5.8.2",
+    "puppeteer": "^24.11.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.3.4"
+    "ts-node": "^10.9.2",
+    "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
     "eslint": "^9",
     "eslint-config-next": "15.3.4",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }
