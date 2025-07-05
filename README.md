@@ -1,40 +1,62 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/pages/api-reference/create-next-app).
+# AnimeGPT
+
+AnimeGPT is an AI-powered chatbot for anime superfans! It uses Pinecone for vector search, Groq for chat completions, and Next.js for the frontend. Ask anything about anime, series, movies, manga, creators, studios, and more.
+
+## Features
+- **Semantic search** over recent anime news using Pinecone vector database
+- **Streaming chat completions** powered by Groq LLMs
+- **Modern Next.js frontend** with markdown support
 
 ## Getting Started
 
-First, run the development server:
-
+### 1. Clone the repository
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+git clone https://github.com/your-username/anime-gpt.git
+cd anime-gpt
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Install dependencies
+```bash
+npm install
+```
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+### 3. Set up environment variables
+Create a `.env` file in the project root with the following:
+```
+PINECONE_API_KEY=your-pinecone-api-key
+PINECONE_INDEX=animegpt
+PINECONE_CLOUD=aws
+PINECONE_REGION=us-east-1
+GROQ_API_KEY=your-groq-api-key
+```
 
-[API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) can be accessed on [http://localhost:3000/api/hello](http://localhost:3000/api/hello). This endpoint can be edited in `pages/api/hello.ts`.
+### 4. Seed the Pinecone database
+This will scrape anime news, embed it, and upsert to Pinecone:
+```bash
+npm run seed
+```
 
-The `pages/api` directory is mapped to `/api/*`. Files in this directory are treated as [API routes](https://nextjs.org/docs/pages/building-your-application/routing/api-routes) instead of React pages.
+### 5. Run the development server
+```bash
+npm run dev
+```
+Open [http://localhost:3000](http://localhost:3000) to use AnimeGPT.
 
-This project uses [`next/font`](https://nextjs.org/docs/pages/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Project Structure
+- `app/api/chat/route.ts` — API route for chat, Pinecone search, and Groq completions
+- `scripts/loadDB.ts` — Script to scrape, embed, and upsert anime news to Pinecone
+- `app/page.tsx` — Main frontend page
 
-## Learn More
+## Deployment
+AnimeGPT can be deployed on Vercel or any platform supporting Next.js.
 
-To learn more about Next.js, take a look at the following resources:
+## Contributing
+Pull requests and issues are welcome!
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn-pages-router) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+**First commit and push completed.**
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/pages/building-your-application/deploying) for more details.
+AnimeGPT © 2024
