@@ -1,38 +1,25 @@
-import fs from 'fs';
-import path from 'path';
 import { Message } from '../types';
+import { saveToS3, getFromS3, listFromS3, deleteFromS3 } from './s3';
 
-const CHAT_HISTORY_DIR = path.join(process.cwd(), 'data', 'chat-history');
-
-// Ensure chat history directory exists
-if (!fs.existsSync(CHAT_HISTORY_DIR)) {
-  fs.mkdirSync(CHAT_HISTORY_DIR, { recursive: true });
-}
-
-interface ChatSession {
+export interface ChatSession {
   id: string;
   createdAt: string;
   updatedAt: string;
   messages: Message[];
 }
 
-export const getChatHistory = (sessionId: string): ChatSession | null => {
+export const getChatHistory = async (sessionId: string): Promise<ChatSession | null> => {
   try {
-    const filePath = path.join(CHAT_HISTORY_DIR, `${sessionId}.json`);
-    if (!fs.existsSync(filePath)) return null;
-    
-    const fileContent = fs.readFileSync(filePath, 'utf-8');
-    return JSON.parse(fileContent) as ChatSession;
+    return await getFromS3(sessionId);
   } catch (error) {
     console.error('Error reading chat history:', error);
     return null;
   }
 };
 
-export const saveChatHistory = (sessionId: string, messages: Message[]): void => {
+export const saveChatHistory = async (sessionId: string, messages: Message[]): Promise<void> => {
   try {
-    const filePath = path.join(CHAT_HISTORY_DIR, `${sessionId}.json`);
-    const existingSession = getChatHistory(sessionId);
+    const existingSession = await getChatHistory(sessionId);
     
     const session: ChatSession = {
       id: sessionId,
@@ -41,31 +28,26 @@ export const saveChatHistory = (sessionId: string, messages: Message[]): void =>
       messages,
     };
     
-    fs.writeFileSync(filePath, JSON.stringify(session, null, 2));
+    await saveToS3(sessionId, session);
   } catch (error) {
     console.error('Error saving chat history:', error);
+    throw error;
   }
 };
 
-export const listChatSessions = (): string[] => {
+export const listChatSessions = async (): Promise<string[]> => {
   try {
-    return fs.readdirSync(CHAT_HISTORY_DIR)
-      .filter(file => file.endsWith('.json'))
-      .map(file => file.replace('.json', ''));
+    return await listFromS3();
   } catch (error) {
     console.error('Error listing chat sessions:', error);
     return [];
   }
 };
 
-export const deleteChatHistory = (sessionId: string): boolean => {
+export const deleteChatHistory = async (sessionId: string): Promise<boolean> => {
   try {
-    const filePath = path.join(CHAT_HISTORY_DIR, `${sessionId}.json`);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-      return true;
-    }
-    return false;
+    await deleteFromS3(sessionId);
+    return true;
   } catch (error) {
     console.error('Error deleting chat history:', error);
     return false;

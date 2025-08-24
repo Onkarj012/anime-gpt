@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@ai-sdk/react": "^1.2.12",
+    "@aws-sdk/client-s3": "^3.873.0",
     "@datastax/astra-db-ts": "^2.0.1",
     "@langchain/community": "^0.3.47",
     "@langchain/core": "^0.3.61",

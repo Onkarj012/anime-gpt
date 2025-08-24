@@ -8,6 +8,7 @@ export const useChatHistory = (initialSessionId?: string) => {
   const [sessions, setSessions] = useState<string[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   // Load sessions list
   useEffect(() => {
@@ -18,7 +19,9 @@ export const useChatHistory = (initialSessionId?: string) => {
         setSessions(data.sessions);
         setLoading(false);
       } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load sessions';
         console.error('Error loading sessions:', error);
+        setError(message);
         setLoading(false);
       }
     };
@@ -38,7 +41,9 @@ export const useChatHistory = (initialSessionId?: string) => {
           setMessages(session.messages);
         }
       } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to load session';
         console.error('Error loading session:', error);
+        setError(message);
       }
     };
 
@@ -57,7 +62,9 @@ export const useChatHistory = (initialSessionId?: string) => {
           body: JSON.stringify({ sessionId, messages }),
         });
       } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to save messages';
         console.error('Error saving messages:', error);
+        setError(message);
       }
     };
 
@@ -87,7 +94,9 @@ export const useChatHistory = (initialSessionId?: string) => {
         }
       }
     } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to delete session';
       console.error('Error deleting session:', error);
+      setError(message);
     }
   };
 
@@ -100,5 +109,7 @@ export const useChatHistory = (initialSessionId?: string) => {
     switchSession,
     deleteSession,
     loading,
+    error,
+    clearError: () => setError(null),
   };
 };

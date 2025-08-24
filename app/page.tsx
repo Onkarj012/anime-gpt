@@ -133,6 +133,9 @@ const Home = () => {
     createNewSession,
     switchSession,
     deleteSession,
+    loading,
+    error,
+    clearError,
   } = useChatHistory();
 
   const [input, setInput] = useState("");
@@ -236,15 +239,29 @@ const Home = () => {
           <span className="theme-text">{isDark ? "Light" : "Dark"}</span>
         </button>
       </div>
+      {error && (
+        <div className="error-toast" onClick={clearError}>
+          {error}
+          <button className="close-error" onClick={clearError}>
+            ×
+          </button>
+        </div>
+      )}
       <div className="app-container">
         {/* Session Selector */}
-        <SessionSelector
-          sessions={sessions}
-          currentSessionId={sessionId}
-          onSelect={switchSession}
-          onDelete={deleteSession}
-          onNew={createNewSession}
-        />
+        {loading ? (
+          <div className="session-selector loading">
+            <div className="loading-text">Loading sessions...</div>
+          </div>
+        ) : (
+          <SessionSelector
+            sessions={sessions}
+            currentSessionId={sessionId}
+            onSelect={switchSession}
+            onDelete={deleteSession}
+            onNew={createNewSession}
+          />
+        )}
 
         {/* Chat Container */}
         <div className="chat-container">

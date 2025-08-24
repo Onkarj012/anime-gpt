@@ -10,17 +10,25 @@ export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const sessionId = searchParams.get('sessionId');
 
-  if (sessionId) {
-    // Get specific chat session
-    const session = getChatHistory(sessionId);
-    if (!session) {
-      return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+  try {
+    if (sessionId) {
+      // Get specific chat session
+      const session = await getChatHistory(sessionId);
+      if (!session) {
+        return NextResponse.json({ error: 'Session not found' }, { status: 404 });
+      }
+      return NextResponse.json(session);
+    } else {
+      // List all sessions
+      const sessions = await listChatSessions();
+      return NextResponse.json({ sessions });
     }
-    return NextResponse.json(session);
-  } else {
-    // List all sessions
-    const sessions = listChatSessions();
-    return NextResponse.json({ sessions });
+  } catch (error) {
+    console.error('Error in GET chat history:', error);
+    return NextResponse.json(
+      { error: 'Failed to retrieve chat history' },
+      { status: 500 }
+    );
   }
 }
 
@@ -35,7 +43,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    saveChatHistory(sessionId, messages);
+    await saveChatHistory(sessionId, messages);
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error saving chat history:', error);
@@ -57,13 +65,21 @@ export async function DELETE(request: NextRequest) {
     );
   }
 
-  const success = deleteChatHistory(sessionId);
-  if (!success) {
+  try {
+    const success = await deleteChatHistory(sessionId);
+    if (!success) {
+      return NextResponse.json(
+        { error: 'Failed to delete chat history' },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting chat history:', error);
     return NextResponse.json(
       { error: 'Failed to delete chat history' },
-      { status: 404 }
+      { status: 500 }
     );
   }
-
-  return NextResponse.json({ success: true });
 }

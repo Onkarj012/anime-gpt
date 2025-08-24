@@ -89,6 +89,58 @@
   overflow: hidden;
 }
 
+/* Error Toast */
+.error-toast {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  background: var(--accent-sakura);
+  color: white;
+  padding: 0.75rem 2.5rem 0.75rem 1rem;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-medium);
+  z-index: 1000;
+  cursor: pointer;
+  animation: slideIn 0.3s ease;
+}
+
+.close-error {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: white;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 0.25rem;
+}
+
+.session-selector.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.loading-text {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+/* Animation */
+@keyframes slideIn {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .app-container {
