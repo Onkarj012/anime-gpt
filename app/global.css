@@ -180,42 +180,40 @@ body {
     font-size: 0.95rem;
 }
 
-/* Markdown Styling */
-.message-content h1, .message-content h2, .message-content h3 {
-    font-family: 'Noto Sans JP', sans-serif;
-    margin-bottom: 0.5rem;
-    color: var(--accent-lavender);
+/* Import markdown styles */
+@import './markdown.css';
+
+/* Base message content styling */
+.message-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    max-width: 100%;
+    overflow-wrap: break-word;
 }
 
-.message-content h1 { font-size: 1.25rem; }
-.message-content h2 { font-size: 1.125rem; }
-.message-content h3 { font-size: 1rem; }
-
-.message-content ul, .message-content ol {
-    margin-left: 1.5rem;
-    margin-bottom: 0.5rem;
-}
-
-.message-content li {
-    margin-bottom: 0.25rem;
-}
-
-.message-content a {
-    color: var(--accent-lavender);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
+/* Message bubble enhancements */
+.message-bubble {
+    padding: 1.25rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-light);
     transition: all 0.2s ease;
 }
 
-.message-content a:hover {
-    border-bottom-color: var(--accent-lavender);
+.message.ai .message-bubble {
+    background: var(--ai-bubble);
+    border-left: 4px solid var(--accent-sakura);
 }
 
-.message-content code {
-    background: var(--secondary-bg);
-    padding: 0.125rem 0.25rem;
-    border-radius: 4px;
-    font-family: 'SF Mono', 'Monaco', 'Consolas', monospace;
+.message.user .message-bubble {
+    background: var(--user-bubble);
+    color: white;
+}
+
+/* Hover effects */
+.message-bubble:hover {
+    box-shadow: var(--shadow-medium);
+    transform: translateY(-1px);
     font-size: 0.875rem;
 }
 

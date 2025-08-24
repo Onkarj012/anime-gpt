@@ -103,22 +103,37 @@ QUESTION: ${latestMessage}
       stream: true,
     });
 
-    // Convert Groq stream into Next.js stream
-    const { readable, writable } = new TransformStream();
-    const writer = writable.getWriter();
+    // Convert Groq stream into AI SDK compatible format
     const encoder = new TextEncoder();
-
-    (async () => {
-      for await (const chunk of groqResponse) {
-        const content = chunk.choices[0]?.delta?.content || "";
-        await writer.write(encoder.encode(content));
+    const stream = new ReadableStream({
+      async start(controller) {
+        try {
+          for await (const chunk of groqResponse) {
+            const content = chunk.choices[0]?.delta?.content || "";
+            if (content) {
+              const payload = {
+                choices: [{ delta: { content } }]
+              };
+              controller.enqueue(encoder.encode(`data: ${JSON.stringify(payload)}\n\n`));
+            }
+          }
+          controller.enqueue(encoder.encode('data: [DONE]\n\n'));
+          controller.close();
+        } catch (error) {
+          console.error("Stream processing error:", error);
+          controller.error(error);
+        }
       }
-      await writer.close();
-    })();
+    });
 
-    return new NextResponse(readable, {
+    return new NextResponse(stream, {
       headers: {
-        "Content-Type": "text/plain",
+        "Content-Type": "text/event-stream",
+        "Cache-Control": "no-cache",
+        "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type",
       },
     });
   } catch (err) {

@@ -1,58 +1,165 @@
 "use client";
-import { useChat } from "@ai-sdk/react";
-import { Message } from "ai";
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import "./markdown.css";
+
+interface Message {
+  role: "user" | "assistant";
+  content: string;
+  id?: string;
+}
 
 const Home = () => {
-  const {
-    append,
-    isLoading,
-    messages,
-    input,
-    handleInputChange,
-    handleSubmit,
-  } = useChat();
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [input, setInput] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setInput(e.target.value);
+  };
+
+  const handleSubmit = useCallback(
+    async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (!input.trim() || isLoading) return;
+
+      const userMessage = { role: "user" as const, content: input };
+      setMessages((prev) => [...prev, userMessage]);
+      setInput("");
+      setIsLoading(true);
+
+      try {
+        const response = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ messages: [...messages, userMessage] }),
+        });
+
+        if (!response.ok || !response.body)
+          throw new Error(response.statusText);
+
+        const reader = response.body.getReader();
+        const decoder = new TextDecoder();
+        let content = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+
+          const text = decoder.decode(value);
+          const chunks = text.split("\n");
+
+          for (const chunk of chunks) {
+            if (chunk.startsWith("data: ")) {
+              const data = chunk.slice(6);
+              if (data === "[DONE]") continue;
+
+              try {
+                const parsed = JSON.parse(data);
+                const newContent = parsed.choices[0]?.delta?.content || "";
+                content += newContent;
+
+                setMessages((prev) => {
+                  const lastMessage = prev[prev.length - 1];
+                  if (lastMessage?.role === "assistant") {
+                    return [
+                      ...prev.slice(0, -1),
+                      {
+                        role: "assistant",
+                        content: lastMessage.content + newContent,
+                      },
+                    ];
+                  }
+                  return [...prev, { role: "assistant", content }];
+                });
+              } catch (e) {
+                console.error("Error parsing chunk:", e);
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Chat error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [input, isLoading, messages]
+  );
 
   const [isDark, setIsDark] = useState(false);
   const noMessage = !messages || messages.length === 0;
-
-  const handlePrompt = (promptText: string) => {
-    const msg: Message = {
-      id: crypto.randomUUID(),
-      content: promptText,
-      role: "user",
-    };
-    append(msg);
-  };
 
   const toggleTheme = () => {
     setIsDark(!isDark);
   };
 
-  const parseMarkdown = (text: string) => {
-    return text
-      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-      .replace(/\*(.*?)\*/g, '<em>$1</em>')
-      .replace(/^### (.*$)/gm, '<h3>$1</h3>')
-      .replace(/^## (.*$)/gm, '<h2>$1</h2>')
-      .replace(/^# (.*$)/gm, '<h1>$1</h1>')
-      .replace(/^- (.*$)/gm, '<li>$1</li>')
-      .replace(/^\d+\. (.*$)/gm, '<li>$1</li>')
-      .replace(/(<li>.*<\/li>)/s, '<ul>$1</ul>')
-      .replace(/^> (.*$)/gm, '<blockquote>$1</blockquote>')
-      .replace(/`(.*?)`/g, '<code>$1</code>')
-      .replace(/\[(.*?)\]\((.*?)\)/g, '<a href="$2" target="_blank">$1</a>')
-      .replace(/\n/g, '<br>');
+  // Enhanced markdown parser with better formatting
+  const parseMarkdown = (text: string): string => {
+    return (
+      text
+        // Alternative Headers (=== and ---)
+        .replace(/^(.+)\n=+$/gm, '<h1 class="md-h1">$1</h1>')
+        .replace(/^(.+)\n-+$/gm, '<h2 class="md-h2">$1</h2>')
+        // Standard Headers
+        .replace(/^### (.*$)/gm, '<h3 class="md-h3">$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2 class="md-h2">$1</h2>')
+        .replace(/^# (.*$)/gm, '<h1 class="md-h1">$1</h1>')
+        // Bold and Italic
+        .replace(/\*\*(.*?)\*\*/g, '<strong class="md-bold">$1</strong>')
+        .replace(/\*(.*?)\*/g, '<em class="md-italic">$1</em>')
+        // Lists
+        .replace(
+          /(?:(?:\r?\n|\r|\n)?[\*\-]\s+([^\n\r]+))+/gm,
+          function (match) {
+            const items = match
+              .split(/\r?\n|\r|\n/)
+              .filter((line) => line.trim());
+            const listItems = items
+              .map(
+                (item) =>
+                  `<li class="md-list-item">${item.replace(
+                    /^[\*\-]\s+/,
+                    ""
+                  )}</li>`
+              )
+              .join("");
+            return `<ul class="md-list">${listItems}</ul>`;
+          }
+        )
+        // Code blocks
+        .replace(
+          /```(\w*)\n([\s\S]*?)```/gm,
+          '<pre class="md-code-block"><code class="language-$1">$2</code></pre>'
+        )
+        // Inline code
+        .replace(/`([^`]+)`/g, '<code class="md-inline-code">$1</code>')
+        // Blockquotes
+        .replace(
+          /^\> (.*$)/gm,
+          '<blockquote class="md-blockquote">$1</blockquote>'
+        )
+        // Links
+        .replace(
+          /\[(.*?)\]\((.*?)\)/g,
+          '<a class="md-link" href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+        )
+        // Paragraphs
+        .replace(/\n\n/g, '</p><p class="md-paragraph">')
+        // Line breaks
+        .replace(/\n/g, "<br>")
+        // Wrap in paragraph if not already wrapped
+        .replace(/^(.+)$/, '<p class="md-paragraph">$1</p>')
+    );
   };
 
   return (
-    <div className="app" data-theme={isDark ? 'dark' : 'light'}>
+    <div className="app" data-theme={isDark ? "dark" : "light"}>
       {/* Header */}
       <div className="header">
         <h1 className="logo">AnimeGPT</h1>
         <button className="theme-toggle" onClick={toggleTheme}>
-          <span className="theme-icon">{isDark ? '☀️' : '🌙'}</span>
-          <span className="theme-text">{isDark ? 'Light' : 'Dark'}</span>
+          <span className="theme-icon">{isDark ? "☀️" : "🌙"}</span>
+          <span className="theme-text">{isDark ? "Light" : "Dark"}</span>
         </button>
       </div>
 
@@ -63,20 +170,26 @@ const Home = () => {
             <div className="welcome-message">
               <h2 className="welcome-title">こんにちは！Welcome to AnimeGPT</h2>
               <p className="welcome-subtitle">
-                Your personal anime assistant is here to help with recommendations, trivia, and discussions about your favorite series!
+                Your personal anime assistant is here to help with
+                recommendations, trivia, and discussions about your favorite
+                series!
               </p>
             </div>
           ) : (
             <>
               {messages.map((message, index) => (
-                <div key={`message-${index}`} className={`message ${message.role}`}>
+                <div
+                  key={`message-${index}`}
+                  className={`message ${message.role}`}
+                >
                   <div className="message-bubble">
-                    <div 
+                    <div
                       className="message-content"
                       dangerouslySetInnerHTML={{
-                        __html: message.role === 'assistant' 
-                          ? parseMarkdown(message.content)
-                          : message.content
+                        __html:
+                          message.role === "assistant"
+                            ? parseMarkdown(message.content)
+                            : message.content,
                       }}
                     />
                   </div>
@@ -107,14 +220,14 @@ const Home = () => {
               placeholder="Ask me anything about anime..."
               rows={1}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
+                if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
                   handleSubmit(e);
                 }
               }}
             />
-            <button 
-              type="submit" 
+            <button
+              type="submit"
               className="send-button"
               disabled={isLoading || !input.trim()}
             >
