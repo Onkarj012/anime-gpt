@@ -30,10 +30,10 @@ const groq = new Groq({
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
-    if (!messages?.length) {
+    const { messages, sessionId } = await req.json();
+    if (!messages?.length || !sessionId) {
       return NextResponse.json(
-        { error: "No messages provided" },
+        { error: "Messages and session ID are required" },
         { status: 400 }
       );
     }

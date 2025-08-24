@@ -143,12 +143,11 @@
 
 /* Message Content Container */
 .message-content {
-  font-size: 1rem;
-  line-height: 1.6;
-  color: var(--text-primary);
-}
-
-.message.ai .message-content {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-primary);
+    transition: all 0.2s ease-out;
+}.message.ai .message-content {
   color: var(--text-primary);
 }
 
