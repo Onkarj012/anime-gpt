@@ -6,15 +6,20 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   compress: true,
   productionBrowserSourceMaps: false,
-  optimizeFonts: true,
   images: {
     domains: ['anime-gpt-assets.s3.amazonaws.com'],
     minimumCacheTTL: 60,
   },
-  // AWS S3 configuration for static assets
-  assetPrefix: process.env.NODE_ENV === 'production' 
+  // Static assets configuration for production
+  basePath: process.env.NODE_ENV === 'production' ? '/app' : '',
+  assetPrefix: process.env.NODE_ENV === 'production'
     ? 'https://anime-gpt-assets.s3.amazonaws.com'
-    : undefined,
+    : '',
+  // Use SWC minification
+  swcMinify: true,
+  // Configure static asset optimization
+  optimizeFonts: true,
+  staticPageGenerationTimeout: 120,
 };
 
 export default nextConfig;

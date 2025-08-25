@@ -1,4 +1,7 @@
 import "./global.css";
+import "./markdown.css";
+import "./chat-sessions.css";
+import { inter, notoSansJP } from "./fonts";
 
 export const metadata = {
   title: "AnimeGPT",
@@ -7,10 +10,7 @@ export const metadata = {
 
 const RootLayout = ({ children }) => {
   return (
-    <html lang="en">
-      <head>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Noto+Sans+JP:wght@300;400;500;600&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" className={`${inter.variable} ${notoSansJP.variable}`}>
       <body>{children}</body>
     </html>
   );

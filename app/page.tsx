@@ -1,8 +1,6 @@
 "use client";
 import { useState, useCallback, memo, useMemo } from "react";
 import { useChatHistory } from "./hooks/useChatHistory";
-import "./markdown.css";
-import "./chat-sessions.css";
 
 import { Message } from "./types";
 
